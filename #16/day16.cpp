@@ -219,7 +219,7 @@ int main()
     /** Obs.
 
     I used another program to generate a map based on my input,
-    therefore the part2 of this solution is based in my own input
+    therefore the part2 of this solution is based on my own input
 
     map <int, string> opcodeInstruction;
     opcodeInstruction[0] = "banr";
