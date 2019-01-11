@@ -24,7 +24,6 @@ int main()
         int i, j;
         i = inputLine.find('=');
         j = inputLine.find(',');
-        inputLine[i] = inputLine[j] =  'x';
 
         if(inputLine[0] == 'x')
         {
@@ -35,9 +34,8 @@ int main()
             point.y1 = stoi(inputLine.substr(i+1, j-i));
         }
 
-        i = inputLine.find('=');
-        j = inputLine.find('.');
-        inputLine[i] = inputLine[j] =  'x';
+        i = inputLine.find('=', i+1);
+        j = inputLine.find('.', j+1);
 
         if(inputLine[i-1] == 'x')
         {
