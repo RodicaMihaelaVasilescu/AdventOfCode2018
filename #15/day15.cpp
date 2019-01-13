@@ -226,7 +226,7 @@ void Attack(Unit unit, vector<Unit> &elvesAndGoblins)
     }
 }
 
-void SolvePary1()
+void SolvePart1()
 {
     auto elvesAndGoblins = allElvesAndGoblins;
 
@@ -311,7 +311,7 @@ int main()
     freopen ("out.txt", "w", stdout);
 
     ReadInput();
-    SolvePary1();
+    SolvePart1();
     SolvePart2();
 
     return 0;
