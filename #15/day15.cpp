@@ -29,7 +29,7 @@ int c[] = { 0, -1, 1, 0 };
 
 vector<Unit> allElvesAndGoblins;
 
-vector<Unit> ReadInput ()
+void ReadInput ()
 {
     string inputLine;
 
@@ -51,7 +51,6 @@ vector<Unit> ReadInput ()
     }
 
     N = input.size();
-    return allElvesAndGoblins;
 }
 
 bool gameOver(vector<Unit> elvesAndGoblins)
