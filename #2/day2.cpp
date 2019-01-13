@@ -1,63 +1,71 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-vector<string> input;
-
-void solutionPart1()
+vector<string> ReadInput()
 {
-    int noOfWordsWith2Letters = 0, noOfWordsWith3Letters = 0;
+    vector<string> input;
     string inputLine;
-
-    while(getline (cin, inputLine))
+    while((getline (cin, inputLine)))
     {
         input.push_back(inputLine);
-        map<char, int> letterFrequency;
+    }
+    return input;
+}
+
+void solutionPart1(vector<string> input)
+{
+    int noOfWordsWith2Letters = 0, noOfWordsWith3Letters = 0;
+
+    for_each(input.begin(), input.end(), [&](string inputLine)
+    {
+        unordered_map<char, int> letterFrequency;
 
         for_each(inputLine.begin(), inputLine.end(), [&](char letter)
         {
             letterFrequency[letter]++;
         });
 
-        bool isThereALetterWith2Apparitions = 0, isThereALetterWith3Apparitions = 0;
-        for_each(letterFrequency.begin(), letterFrequency.end(), [&](pair<char, int> x)
+        noOfWordsWith2Letters += find_if(letterFrequency.begin(),letterFrequency.end(), [](pair<char, int> fr)
         {
-            if(x.second == 2 && !isThereALetterWith2Apparitions)
-            {
-                isThereALetterWith2Apparitions = true;
-                noOfWordsWith2Letters ++;
-            }
-            else if(x.second == 3 && !isThereALetterWith3Apparitions)
-            {
-                isThereALetterWith3Apparitions = true;
-                noOfWordsWith3Letters++;
-            }
-        });
+            return fr.second == 2;
+        }) != letterFrequency.end();
 
-        letterFrequency.clear();
-    }
-    cout << noOfWordsWith2Letters * noOfWordsWith3Letters << endl;
+        noOfWordsWith3Letters += find_if(letterFrequency.begin(),letterFrequency.end(), [](pair<char, int> fr)
+        {
+            return fr.second == 3;
+        }) != letterFrequency.end();
+    });
+
+    cout <<"Part1: "<< noOfWordsWith2Letters * noOfWordsWith3Letters << endl;
 }
 
-void solutionPart2()
+void solutionPart2(vector<string> input)
 {
-    for(int i = 0; i < input.size()-1; i++)
+    cout <<"Part2: ";
+
+    for(int i = 0; i < input.size(); i++)
     {
         for(int j = i+1; j < input.size(); j++)
         {
             int noOfDifferentLetters = 0;
-
             for(int letter = 0; letter < input[i].size(); letter++)
             {
-                input[i][letter] == input[j][letter] ? : noOfDifferentLetters++;
+                if( input[i][letter] != input[j][letter])
+                {
+                    noOfDifferentLetters++;
+                }
             }
 
             if(noOfDifferentLetters == 1)
             {
                 for(int letter = 0 ; letter < input[i].size(); letter++)
                 {
-                    input[i][letter] != input[j][letter] ? : printf("%c", input[i][letter]);
+                    if(input[i][letter] == input[j][letter])
+                    {
+                        cout << input[i][letter];
+                    }
                 }
-                break;
+                return;
             }
         }
     }
@@ -68,8 +76,9 @@ int main()
     freopen("in.txt", "r", stdin);
     freopen("out.txt", "w", stdout);
 
-    solutionPart1();
-    solutionPart2();
+    vector<string> input = ReadInput();
+    solutionPart1(input);
+    solutionPart2(input);
 
     return 0;
 }
