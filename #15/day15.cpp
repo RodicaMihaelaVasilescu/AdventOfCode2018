@@ -8,7 +8,7 @@ vector <string> input;
 struct Unit
 {
     string type;
-    int index = -1, hp, x, y;
+    int index = -1, hp, x = 0, y = 0;
 
     bool operator < (const Unit &otherUnit)
     {
@@ -29,10 +29,9 @@ int c[] = { 0, -1, 1, 0 };
 
 vector<Unit> allElvesAndGoblins;
 
-void ReadInput ()
+void ReadInput()
 {
     string inputLine;
-
     int index = 0;
     while(getline(cin, inputLine))
     {
@@ -45,12 +44,11 @@ void ReadInput ()
                 inputLine[i] = '.';
             }
         }
-
         input.push_back(inputLine);
-        M = inputLine.size();
-    }
 
+    }
     N = input.size();
+    M = input[0].size();
 }
 
 bool gameOver(vector<Unit> elvesAndGoblins)
@@ -70,8 +68,9 @@ bool gameOver(vector<Unit> elvesAndGoblins)
     return !(thereAreElves && thereAreGoblins);
 }
 
-void initializeDistancesMatrix(int(& distance)[35][35], vector<Unit> elvesAndGoblins )
+vector<vector<int>> initializeDistancesMatrix( vector<Unit> elvesAndGoblins )
 {
+    vector<vector<int>> distance (N, vector<int> (M));
     for(int i = 0; i != N; i++)
     {
         for(int j = 0; j != M; j++)
@@ -89,16 +88,17 @@ void initializeDistancesMatrix(int(& distance)[35][35], vector<Unit> elvesAndGob
             distance[unit.x][unit.y] = INFINITE;
         }
     }
+    return distance;
 }
 
-void generateDistancesFromAPoint( Unit start, int (&distance)[35][35], vector <Unit> elvesAndGoblins)
+vector<vector<int>> generateDistancesFromAPoint( Unit start, vector <Unit> elvesAndGoblins)
 {
-    initializeDistancesMatrix(distance, elvesAndGoblins);
+    auto distances = initializeDistancesMatrix(elvesAndGoblins);
 
     queue<pair<int, int>> queueOfCoordinates;
 
     queueOfCoordinates.push(make_pair(start.x, start.y));
-    distance[start.x][start.y] = 1;
+    distances[start.x][start.y] = 1;
 
     while(!queueOfCoordinates.empty())
     {
@@ -110,14 +110,36 @@ void generateDistancesFromAPoint( Unit start, int (&distance)[35][35], vector <U
             int row = x + r[i];
             int col = y + c[i];
 
-            if((row > 0) && (row < N) && (col > 0) && (col < M) && distance[row][col] == 0)
+            if((row > 0) && (row < N) && (col > 0) && (col < M) && distances[row][col] == 0)
             {
-                distance[row][col] = distance[x][y]+1;
+                distances[row][col] = distances[x][y]+1;
                 queueOfCoordinates.push(make_pair(row, col));
             }
         }
         queueOfCoordinates.pop();
     }
+    return distances;
+}
+
+Unit getClosestNeighbourOfUnit( Unit unit, vector<vector<int>> distancesMatrix)
+{
+    Unit closestNegihbour;
+    int MinDistance = INFINITE;
+
+    for(int i = 0; i < 4; i++)
+    {
+        int row = unit.x + r[i];
+        int col = unit.y + c[i];
+
+        if(distancesMatrix[row][col] > 0 && distancesMatrix[row][col] < MinDistance)
+        {
+            MinDistance = distancesMatrix[row][col];
+            closestNegihbour = unit;
+            closestNegihbour.x = row;
+            closestNegihbour.y = col;
+        }
+    }
+    return closestNegihbour;
 }
 
 void Move(Unit &unit, vector<Unit> elvesAndGoblins)
@@ -125,8 +147,8 @@ void Move(Unit &unit, vector<Unit> elvesAndGoblins)
     if(unit.hp <= 0)
         return;
 
-    int distanceFromUnit[35][35] {}, MinDistance = INFINITE;
-    generateDistancesFromAPoint(unit, distanceFromUnit, elvesAndGoblins);
+    int MinDistance = INFINITE;
+    auto distanceFromUnit = generateDistancesFromAPoint(unit, elvesAndGoblins);
 
     Unit enemyNeighbour ;
 
@@ -137,50 +159,20 @@ void Move(Unit &unit, vector<Unit> elvesAndGoblins)
             if(abs(unit.x - possibleEnemy.x) + abs(unit.y - possibleEnemy.y) == 1)
                 return;
 
-            for(int i = 0; i < 4; i++)
+            Unit possibleEnemyNeighbour = getClosestNeighbourOfUnit(possibleEnemy, distanceFromUnit);
+            if(distanceFromUnit[possibleEnemyNeighbour.x][possibleEnemyNeighbour.y] > 0 &&
+                    distanceFromUnit[possibleEnemyNeighbour.x][possibleEnemyNeighbour.y] < MinDistance)
             {
-                int row = possibleEnemy.x + r[i];
-                int col = possibleEnemy.y + c[i];
-
-                if(distanceFromUnit[row][col] > 0 && distanceFromUnit[row][col] < MinDistance)
-                {
-                    MinDistance = distanceFromUnit[row][col];
-                    enemyNeighbour = possibleEnemy;
-                    enemyNeighbour.x = row;
-                    enemyNeighbour.y = col;
-                }
+                enemyNeighbour = possibleEnemyNeighbour;
+                MinDistance =  distanceFromUnit[possibleEnemyNeighbour.x][possibleEnemyNeighbour.y];
             }
         }
     }
 
-    Unit unitNeighbour;
+    if(enemyNeighbour.index == -1)
+        return;
 
-    MinDistance = INFINITE;
-    if(enemyNeighbour.index != -1)
-    {
-        int distanceFromEnemy[35][35] {};
-
-        generateDistancesFromAPoint(enemyNeighbour, distanceFromEnemy, elvesAndGoblins);
-
-        for(int i = 0; i < 4; i++)
-        {
-            int row = unit.x + r[i];
-            int col = unit.y + c[i];
-            if(distanceFromEnemy[row][col] > 0 && distanceFromEnemy[row][col] < MinDistance)
-            {
-                MinDistance = distanceFromEnemy[row][col];
-                unitNeighbour = unit;
-                unitNeighbour.x = row;
-                unitNeighbour.y = col;
-            }
-        }
-    }
-
-    if(enemyNeighbour.index != -1)
-    {
-        unit.x = unitNeighbour.x;
-        unit.y = unitNeighbour.y;
-    }
+    unit = getClosestNeighbourOfUnit(unit, generateDistancesFromAPoint(enemyNeighbour, elvesAndGoblins));
 }
 
 set<int> indexesOfUnitsToRemove;
@@ -213,12 +205,10 @@ void Attack(Unit unit, vector<Unit> &elvesAndGoblins)
             {
                 indexesOfUnitsToRemove.insert(u.index);
 
-                //Part2
                 if(u.type == "E")
                 {
-                    doElvesLose = true;
+                    doElvesLose = true; ///Part2
                 }
-                //
             }
             break;
         }
@@ -228,7 +218,6 @@ void Attack(Unit unit, vector<Unit> &elvesAndGoblins)
 void SolvePart1()
 {
     auto elvesAndGoblins = allElvesAndGoblins;
-
     int round = -1;
     while(!gameOver(elvesAndGoblins))
     {
@@ -260,15 +249,12 @@ void SolvePart1()
 }
 void SolvePart2()
 {
-    auto ElvesAndGoblins = allElvesAndGoblins;
-
     while(true)
     {
         ++HP;
         doElvesLose = false;
         int round = -1;
-        auto elvesAndGoblins = ElvesAndGoblins;
-        indexesOfUnitsToRemove.clear();
+        auto elvesAndGoblins = allElvesAndGoblins;
         for(auto u: elvesAndGoblins)
             u.hp = HP;
         while(!gameOver(elvesAndGoblins) && !doElvesLose)
