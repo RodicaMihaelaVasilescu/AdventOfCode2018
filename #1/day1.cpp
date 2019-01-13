@@ -3,7 +3,7 @@ using namespace std;
 
 int Part2(vector<int> input)
 {
-    map<int, int> frequency;
+    unordered_map<int, int> frequency;
     int sum = 0, index = -1;
     while(true)
     {
