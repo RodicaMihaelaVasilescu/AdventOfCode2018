@@ -2,7 +2,7 @@
 #define INFINITE INT_MAX
 using namespace std;
 
-int N, M;
+int N, M, HP = 3;
 vector <string> input;
 
 struct Unit
@@ -27,9 +27,10 @@ struct Unit
 int r[] = { -1, 0, 0, 1 };
 int c[] = { 0, -1, 1, 0 };
 
-vector<Unit> ReadUnits ()
+vector<Unit> allElvesAndGoblins;
+
+vector<Unit> ReadInput ()
 {
-    vector<Unit> allElvesAndGoblins;
     string inputLine;
 
     int index = 0;
@@ -122,7 +123,7 @@ void generateDistancesFromAPoint( Unit start, int (&distance)[35][35], vector <U
 
 void Move(Unit &unit, vector<Unit> elvesAndGoblins)
 {
-    if(unit.hp < 0)
+    if(unit.hp <= 0)
         return;
 
     int distanceFromUnit[35][35] {}, MinDistance = INFINITE;
@@ -184,9 +185,10 @@ void Move(Unit &unit, vector<Unit> elvesAndGoblins)
 }
 
 set<int> indexesOfUnitsToRemove;
+bool doElvesLose;
 void Attack(Unit unit, vector<Unit> &elvesAndGoblins)
 {
-    if(unit.hp < 0)
+    if(unit.hp <= 0)
         return;
 
     Unit enemy;
@@ -206,22 +208,27 @@ void Attack(Unit unit, vector<Unit> &elvesAndGoblins)
     {
         if(enemy.index == u.index)
         {
-            u.hp -= 3;
-            if(u.hp < 0)
+            u.type == "E" ? u.hp -= 3 : u.hp -= HP;
+
+            if(u.hp <= 0)
             {
                 indexesOfUnitsToRemove.insert(u.index);
+
+                //Part2
+                if(u.type == "E")
+                {
+                    doElvesLose = true;
+                }
+                //
             }
             break;
         }
     }
 }
 
-int main()
+void SolvePary1()
 {
-    freopen ("in.txt", "r", stdin);
-    freopen ("out.txt", "w", stdout);
-
-    auto elvesAndGoblins = ReadUnits();
+    auto elvesAndGoblins = allElvesAndGoblins;
 
     int round = -1;
     while(!gameOver(elvesAndGoblins))
@@ -246,10 +253,66 @@ int main()
     }
 
     ///Part1
-    cout << "Part1 : " << round * accumulate(elvesAndGoblins.begin(), elvesAndGoblins.end(), 0, [](int sum, Unit unit)
+    cout << "Part1: " << round * accumulate(elvesAndGoblins.begin(), elvesAndGoblins.end(), 0, [](int sum, Unit unit)
     {
         return sum + unit.hp;
-    });
+    })<<endl;
+
+}
+void SolvePart2()
+{
+    auto ElvesAndGoblins = allElvesAndGoblins;
+
+    while(true)
+    {
+        ++HP;
+        doElvesLose = false;
+        int round = -1;
+        auto elvesAndGoblins = ElvesAndGoblins;
+        indexesOfUnitsToRemove.clear();
+        for(auto u: elvesAndGoblins)
+            u.hp = HP;
+        while(!gameOver(elvesAndGoblins) && !doElvesLose)
+        {
+            round++;
+            sort(elvesAndGoblins.begin(), elvesAndGoblins.end());
+            for(auto &unit: elvesAndGoblins)
+            {
+                Move(unit, elvesAndGoblins);
+                Attack(unit, elvesAndGoblins );
+                if(doElvesLose)
+                    break;
+            }
+
+            for(auto i = indexesOfUnitsToRemove.rbegin(); i != indexesOfUnitsToRemove.rend(); i++)
+            {
+                elvesAndGoblins.erase(remove_if(elvesAndGoblins.begin(), elvesAndGoblins.end(), [&](Unit const & a)
+                {
+                    return a.index == *i;
+                }),elvesAndGoblins.end());
+            }
+            indexesOfUnitsToRemove.clear();
+        }
+        if(!doElvesLose)
+        {
+            ///Part2
+            cout <<"Part2: " << round * accumulate(elvesAndGoblins.begin(), elvesAndGoblins.end(), 0, [](int sum, Unit elf)
+            {
+                return elf.type == "E" ? sum + elf.hp : sum;
+            });
+            return;
+        }
+    }
+}
+
+int main()
+{
+    freopen ("in.txt", "r", stdin);
+    freopen ("out.txt", "w", stdout);
+
+    ReadInput();
+    SolvePary1();
+    SolvePart2();
 
     return 0;
 }
