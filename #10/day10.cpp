@@ -14,23 +14,20 @@ void Read()
     {
         Point point;
         int i, j;
+      
         i = inputLine.find('<');
-        j = inputLine.find(',');
-        inputLine[i] = inputLine[j] =  '.';
+        j = inputLine.find(',', i+1);
         point.x = stoi(inputLine.substr(i+1, j-i));
 
-        i = j;
-        j = inputLine.find('>');
-        inputLine[j] =  '.';
-        point.y = stoi(inputLine.substr(i+1, j-i));
+        i = inputLine.find('>', j+1);
+        point.y = stoi(inputLine.substr(j+1, i-j));
 
-        i = inputLine.find('<');
-        j = inputLine.find(',');
+        i = inputLine.find('<', i+1);
+        j = inputLine.find(',', i+1);
         point.v1 = stoi(inputLine.substr(i+1, j-i));
 
-        i = j;
-        j = inputLine.find('>');
-        point.v2 = stoi(inputLine.substr(i+1, j-i));
+        i = inputLine.find('>', j+1);
+        point.v2 = stoi(inputLine.substr(j+1, i-j));
 
         points.push_back(point);
     }
