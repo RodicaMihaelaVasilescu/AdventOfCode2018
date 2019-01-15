@@ -2,11 +2,10 @@
 #define N 301
 using namespace std;
 
-int  topLeftCornerX, topLeftCornerY, squareLength, sumMax = INT_MIN;
-
-void Solve(int matrix[N][N], int k)
+tuple<int, int, int, int> Solve(vector<vector<int>> matrix, int k)
 {
-    int partialSum[N][N];
+    int topLeftCornerX, topLeftCornerY, squareLength, sumMax = INT_MIN;
+    vector<vector<int>> partialSum(N,vector<int>(N)) ;
 
     for (int j = 0; j < N; j++)
     {
@@ -25,27 +24,29 @@ void Solve(int matrix[N][N], int k)
 
     for (int i = 0; i < N - k + 1; i++)
     {
-        int sum = accumulate(partialSum[i], partialSum[i] + k, 0);
+        int sum = accumulate(partialSum[i].begin(), partialSum[i].begin() + k, 0);
         for (int j = 1; j < N-k+1; j++)
         {
             sum += partialSum[i][j+k-1] - partialSum[i][j-1];
 
             if (sum > sumMax)
             {
-                sumMax = sum;
                 topLeftCornerX = i;
                 topLeftCornerY = j;
                 squareLength = k;
+                sumMax = sum;
             }
         }
     }
+    return make_tuple( topLeftCornerX, topLeftCornerY, squareLength, sumMax);
 }
 
 int main()
 {
     ifstream cin("in.txt");
-    ofstream cout ("out.txt");
-    int matrix[N][N];
+    //ofstream cout("out.txt");
+    
+    vector<vector<int>> matrix(N,vector<int>(N)) ;
 
     int input;
     cin >> input;
@@ -59,16 +60,20 @@ int main()
     }
 
     ///Part1
-    Solve(matrix, 3);
-    cout << "Part1: " << topLeftCornerX << "," << topLeftCornerY <<endl;
+    auto largest3x3Square =  Solve(matrix, 3);
+    cout << "Part1: " << get<0>(largest3x3Square) << "," << get<1>(largest3x3Square) <<endl;
 
     ///Part2
-    sumMax = INT_MIN;
+    tuple<int, int, int, int> largestSquare;
     for(int k = 1; k < N; k++)
     {
-        Solve(matrix, k);
+        auto largestKxKSquare = Solve(matrix, k);
+        if(get<3> (largestKxKSquare) > get<3>(largestSquare))
+        {
+            largestSquare = largestKxKSquare;
+        }
     }
-    cout << "Part2: " << topLeftCornerX << "," << topLeftCornerY << "," << squareLength;
+    cout << "Part2: " << get<0>(largestSquare) << "," << get<1>(largestSquare) << "," << get<2>(largestSquare);
 
     return 0;
 }
